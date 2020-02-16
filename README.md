@@ -3,7 +3,7 @@
   <h1><code>schematic</code></h1>
 
   <p>
-    <strong>Generate serde-compatible type schemas for Rust.</strong>
+    <strong>Generate Serde-compatible type schemas for Rust.</strong>
   </p>
 
 </div>
