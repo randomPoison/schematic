@@ -1,5 +1,3 @@
-use encode::Encode;
-
 mod encode;
 mod primitive;
 mod schema;
