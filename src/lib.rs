@@ -1,12 +1,12 @@
-mod encode;
+mod describe;
 mod primitive;
 mod schema;
-mod schema_encoder;
+mod schema_describer;
 
-pub use crate::{encode::*, schema::*, schema_encoder::*};
+pub use crate::{describe::*, schema::*, schema_describer::*};
 
-/// Encodes `T` into an in-memory representation of the type tree.
-pub fn encode<T: Encode>() -> Result<Schema, ()> {
-    let mut encode = SchemaEncoder;
-    T::encode(&mut encode)
+/// Describes `T` into an in-memory representation of the type tree.
+pub fn describe<T: Describe>() -> Result<Schema, ()> {
+    let mut describe = SchemaDescriber;
+    T::describe(&mut describe)
 }

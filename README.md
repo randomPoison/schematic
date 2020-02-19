@@ -17,7 +17,7 @@ pub struct MyStruct {
     value: u32,
 }
 
-let schema = schematic::encode::<MyStruct>();
+let schema = schematic::describe::<MyStruct>();
 println!("{:?}", schema);
 ```
 

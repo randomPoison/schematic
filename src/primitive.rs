@@ -1,66 +1,66 @@
-//! Implementations of `Encode` for primitives and types provided by the standard libary.
+//! Implementations of `Describe` for primitives and types provided by the standard libary.
 
-use crate::encode::{Encode, Encoder};
+use crate::describe::{Describe, Describer};
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
-/// Generates the `Encode` impl for primitives and collection types.
+/// Generates the `Describe` impl for primitives and collection types.
 ///
-/// Forwards any specified generic parameters directly to the specified encode
-/// function and automatically adds the `Encode` bound for generic parameters. For
-/// example, invoking with `Collection<A, B> => encode_map` will expand to:
+/// Forwards any specified generic parameters directly to the specified describe
+/// function and automatically adds the `Describe` bound for generic parameters. For
+/// example, invoking with `Collection<A, B> => describe_map` will expand to:
 ///
 /// ```
-/// impl<A, B> Encode for Collection<A, B> where A: Encode, B: Encode {
-///     fn encode<E: Encoder>(encoder: E) -> Result<> {
-///         encoder.encode_map::<A, B>()
+/// impl<A, B> Describe for Collection<A, B> where A: Describe, B: Describe {
+///     fn describe<E: Describer>(describer: D) -> Result<> {
+///         describer.describe_map::<A, B>()
 ///     }
 /// }
 /// ```
-macro_rules! impl_encode {
-    ( $( $ty:ident $( < $( $generic:ident ),* > )? => $encode:ident, )* ) => {
+macro_rules! impl_describe {
+    ( $( $ty:ident $( < $( $generic:ident ),* > )? => $describe:ident, )* ) => {
         $(
-            impl $( < $( $generic ),* > )? Encode for $ty $( < $( $generic ),* > where $( $generic: Encode ),* )? {
-                fn encode<E: Encoder>(encoder: E) -> Result<E::Ok, E::Error> {
-                    encoder.$encode $( ::<$( $generic, )* >)?()
+            impl $( < $( $generic ),* > )? Describe for $ty $( < $( $generic ),* > where $( $generic: Describe ),* )? {
+                fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
+                    describer.$describe $( ::<$( $generic, )* >)?()
                 }
             }
         )*
     }
 }
 
-impl_encode! {
-    i8 => encode_i8,
-    i16 => encode_i16,
-    i32 => encode_i32,
-    i64 => encode_i64,
-    i128 => encode_i128,
-    u8 => encode_u8,
-    u16 => encode_u16,
-    u32 => encode_u32,
-    u64 => encode_u64,
-    u128 => encode_u128,
-    bool => encode_bool,
-    char => encode_char,
-    String => encode_string,
-    Option<T> => encode_option,
-    Vec<T> => encode_seq,
-    VecDeque<T> => encode_seq,
-    HashMap<K, V> => encode_map,
-    BTreeMap<K, V> => encode_map,
-    HashSet<T> => encode_seq,
-    BTreeSet<T> => encode_seq,
-    BinaryHeap<T> => encode_seq,
-    LinkedList<T> => encode_seq,
+impl_describe! {
+    i8 => describe_i8,
+    i16 => describe_i16,
+    i32 => describe_i32,
+    i64 => describe_i64,
+    i128 => describe_i128,
+    u8 => describe_u8,
+    u16 => describe_u16,
+    u32 => describe_u32,
+    u64 => describe_u64,
+    u128 => describe_u128,
+    bool => describe_bool,
+    char => describe_char,
+    String => describe_string,
+    Option<T> => describe_option,
+    Vec<T> => describe_seq,
+    VecDeque<T> => describe_seq,
+    HashMap<K, V> => describe_map,
+    BTreeMap<K, V> => describe_map,
+    HashSet<T> => describe_seq,
+    BTreeSet<T> => describe_seq,
+    BinaryHeap<T> => describe_seq,
+    LinkedList<T> => describe_seq,
 }
 
-impl Encode for () {
-    fn encode<E: Encoder>(encoder: E) -> Result<E::Ok, E::Error> {
-        encoder.encode_unit()
+impl Describe for () {
+    fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
+        describer.describe_unit()
     }
 }
 
-// impl<'a> Encode for &'a str {
-//     fn encode<E: Encoder>(encoder: E) -> Result<E::Ok, E::Error> {
-//         encoder.encode_str()
+// impl<'a> Describe for &'a str {
+//     fn describe<E: Describer>(describer: D) -> Result<E::Ok, E::Error> {
+//         describer.describe_str()
 //     }
 // }
