@@ -1,14 +1,17 @@
 use crate::{
     describe::{Describe, Describer},
     schema::*,
-    TypeName,
+    DescribeStruct, TypeName,
 };
+use std::borrow::Cow;
 
 pub struct SchemaDescriber;
 
 impl<'a> Describer for &'a mut SchemaDescriber {
     type Ok = Schema;
     type Error = ();
+
+    type DescribeStruct = StructDescriber;
 
     fn describe_bool(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::Bool)
@@ -127,7 +130,33 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         unimplemented!()
     }
 
-    fn describe_struct(self, _name: TypeName) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn describe_struct(self, type_name: TypeName) -> Result<Self::DescribeStruct, Self::Error> {
+        Ok(StructDescriber {
+            type_name,
+            fields: Vec::new(),
+        })
+    }
+}
+
+pub struct StructDescriber {
+    type_name: TypeName,
+    fields: Vec<(Cow<'static, str>, Schema)>,
+}
+
+impl DescribeStruct for StructDescriber {
+    type Ok = Schema;
+    type Error = ();
+
+    fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error> {
+        let ty = crate::describe::<T>()?;
+        self.fields.push((name.into(), ty));
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::Struct(Box::new(Struct {
+            name: self.type_name,
+            fields: self.fields,
+        })))
     }
 }

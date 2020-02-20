@@ -12,6 +12,8 @@ pub trait Describer: Sized {
     type Ok;
     type Error;
 
+    type DescribeStruct: DescribeStruct<Ok = Self::Ok, Error = Self::Error>;
+
     fn describe_bool(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i8(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i16(self) -> Result<Self::Ok, Self::Error>;
@@ -56,5 +58,13 @@ pub trait Describer: Sized {
         K: Describe,
         V: Describe;
 
-    fn describe_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
+    fn describe_struct(self, name: TypeName) -> Result<Self::DescribeStruct, Self::Error>;
+}
+
+pub trait DescribeStruct {
+    type Ok;
+    type Error;
+
+    fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error>;
+    fn end(self) -> Result<Self::Ok, Self::Error>;
 }
