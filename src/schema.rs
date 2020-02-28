@@ -1,4 +1,5 @@
 use crate::TypeName;
+use derive_more::From;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt};
 
@@ -107,7 +108,7 @@ pub enum Primitive {
     Isize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, From, Serialize, Deserialize)]
 pub enum PrimitiveValue {
     U8(u8),
     U16(u16),
