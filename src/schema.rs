@@ -1,6 +1,6 @@
 use crate::TypeName;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt};
 
 /// In-memory representation of a type tree.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -75,7 +75,7 @@ pub struct Enum {
     /// The explicit representation of the enum, as specified by the `#[repr(...)]`
     /// attribute.
     ///
-    /// `None` if the 
+    /// `None` if the
     pub repr: Option<Primitive>,
     pub variants: Vec<Variant>,
 }
@@ -121,6 +121,25 @@ pub enum PrimitiveValue {
     I64(i64),
     I128(i128),
     Isize(isize),
+}
+
+impl fmt::Display for PrimitiveValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PrimitiveValue::U8(value) => write!(f, "{}", value),
+            PrimitiveValue::U16(value) => write!(f, "{}", value),
+            PrimitiveValue::U32(value) => write!(f, "{}", value),
+            PrimitiveValue::U64(value) => write!(f, "{}", value),
+            PrimitiveValue::U128(value) => write!(f, "{}", value),
+            PrimitiveValue::Usize(value) => write!(f, "{}", value),
+            PrimitiveValue::I8(value) => write!(f, "{}", value),
+            PrimitiveValue::I16(value) => write!(f, "{}", value),
+            PrimitiveValue::I32(value) => write!(f, "{}", value),
+            PrimitiveValue::I64(value) => write!(f, "{}", value),
+            PrimitiveValue::I128(value) => write!(f, "{}", value),
+            PrimitiveValue::Isize(value) => write!(f, "{}", value),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
