@@ -1,5 +1,6 @@
 use schematic::*;
 
+#[allow(dead_code)]
 enum Simple {
     Foo,
     Bar,

@@ -208,23 +208,23 @@ impl DescribeEnum for EnumDescriber {
 
     fn start_tuple_variant(
         &mut self,
-        name: &'static str,
+        _name: &'static str,
     ) -> Result<Self::DescribeTuple, Self::Error> {
         unimplemented!()
     }
 
-    fn end_tuple_variant(&mut self, variant: Self::DescribeTuple) -> Result<(), Self::Error> {
+    fn end_tuple_variant(&mut self, _variant: Self::DescribeTuple) -> Result<(), Self::Error> {
         unimplemented!()
     }
 
     fn start_struct_variant(
         &mut self,
-        name: &'static str,
+        _name: &'static str,
     ) -> Result<Self::DescribeStruct, Self::Error> {
         unimplemented!()
     }
 
-    fn end_struct_variant(&mut self, variant: Self::DescribeStruct) -> Result<(), Self::Error> {
+    fn end_struct_variant(&mut self, _variant: Self::DescribeStruct) -> Result<(), Self::Error> {
         unimplemented!()
     }
 
