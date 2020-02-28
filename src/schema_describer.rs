@@ -1,7 +1,7 @@
 use crate::{
     describe::{Describe, Describer},
     schema::*,
-    DescribeStruct, TypeName,
+    DescribeEnum, DescribeStruct, DescribeTuple, TypeName,
 };
 use std::borrow::Cow;
 
@@ -12,6 +12,8 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     type Error = ();
 
     type DescribeStruct = StructDescriber;
+    type DescribeEnum = EnumDescriber;
+    type DescribeTuple = TupleDescriber;
 
     fn describe_bool(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::Bool)
@@ -100,11 +102,11 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         })))
     }
 
-    fn describe_enum<T>(self, _name: TypeName) -> Result<Self::Ok, Self::Error>
-    where
-        T: Describe,
-    {
-        unimplemented!()
+    fn describe_enum(self, type_name: TypeName) -> Result<Self::DescribeEnum, Self::Error> {
+        Ok(EnumDescriber {
+            type_name,
+            variants: Vec::new(),
+        })
     }
 
     fn describe_tuple(self) -> Result<Self::Ok, Self::Error> {
@@ -154,9 +156,83 @@ impl DescribeStruct for StructDescriber {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Schema::Struct(Box::new(Struct {
+        Ok(Schema::Struct(Struct {
             name: self.type_name,
             fields: self.fields,
-        })))
+        }))
+    }
+}
+
+pub struct TupleDescriber {
+    elements: Vec<Schema>,
+}
+
+impl DescribeTuple for TupleDescriber {
+    type Ok = Schema;
+    type Error = ();
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
+        self.elements.push(crate::describe::<T>()?);
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::Tuple(self.elements))
+    }
+}
+
+pub struct EnumDescriber {
+    type_name: TypeName,
+    variants: Vec<Variant>,
+}
+
+impl DescribeEnum for EnumDescriber {
+    type Ok = Schema;
+    type Error = ();
+
+    type DescribeStruct = StructDescriber;
+    type DescribeTuple = TupleDescriber;
+
+    fn describe_unit_variant(
+        &mut self,
+        name: &'static str,
+        discriminant: Option<PrimitiveValue>,
+    ) -> Result<(), Self::Error> {
+        self.variants.push(Variant::Unit {
+            name: name.into(),
+            discriminant,
+        });
+
+        Ok(())
+    }
+
+    fn start_tuple_variant(
+        &mut self,
+        _name: &'static str,
+    ) -> Result<Self::DescribeTuple, Self::Error> {
+        unimplemented!()
+    }
+
+    fn end_tuple_variant(&mut self, _variant: Self::DescribeTuple) -> Result<(), Self::Error> {
+        unimplemented!()
+    }
+
+    fn start_struct_variant(
+        &mut self,
+        _name: &'static str,
+    ) -> Result<Self::DescribeStruct, Self::Error> {
+        unimplemented!()
+    }
+
+    fn end_struct_variant(&mut self, _variant: Self::DescribeStruct) -> Result<(), Self::Error> {
+        unimplemented!()
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::Enum(Enum {
+            name: self.type_name,
+            repr: None,
+            variants: self.variants,
+        }))
     }
 }

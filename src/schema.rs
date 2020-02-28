@@ -5,11 +5,11 @@ use std::borrow::Cow;
 /// In-memory representation of a type tree.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Schema {
-    Struct(Box<Struct>),
+    Struct(Struct),
     UnitStruct(UnitStruct),
     NewtypeStruct(Box<NewtypeStruct>),
     TupleStruct(TupleStruct),
-    Enum(Box<Enum>),
+    Enum(Enum),
     Option(Box<Schema>),
     Seq(Box<Schema>),
     Tuple(Vec<Schema>),
@@ -38,7 +38,14 @@ pub enum Schema {
 impl Schema {
     pub fn as_struct(&self) -> Option<&Struct> {
         match self {
-            Schema::Struct(inner) => Some(&**inner),
+            Schema::Struct(inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_enum(&self) -> Option<&Enum> {
+        match self {
+            Schema::Enum(inner) => Some(inner),
             _ => None,
         }
     }
@@ -64,6 +71,56 @@ pub struct Struct {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Enum {
     pub name: TypeName,
+
+    /// The explicit representation of the enum, as specified by the `#[repr(...)]`
+    /// attribute.
+    ///
+    /// `None` if the 
+    pub repr: Option<Primitive>,
+    pub variants: Vec<Variant>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Variant {
+    Unit {
+        name: Cow<'static, str>,
+        discriminant: Option<PrimitiveValue>,
+    },
+
+    Struct(Struct),
+    Tuple(Vec<Schema>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Primitive {
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    Usize,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    Isize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum PrimitiveValue {
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    U128(u128),
+    Usize(usize),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    I128(i128),
+    Isize(isize),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
