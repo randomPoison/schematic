@@ -19,7 +19,7 @@ fn describe_struct() {
     let actual = schematic::describe::<ManualDescribeImpl>()
         .expect("Failed to describe `ManualDescribeImpl`");
 
-    let expected = Schema::Struct(Box::new(Struct {
+    let expected = Schema::Struct(Struct {
         name: TypeName {
             name: "ManualDescribeImpl".into(),
             module: "describe_struct".into(),
@@ -28,7 +28,7 @@ fn describe_struct() {
             ("_field".into(), Schema::String),
             ("_another".into(), Schema::U32),
         ],
-    }));
+    });
 
     assert_eq!(expected, actual);
 }

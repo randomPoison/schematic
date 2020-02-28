@@ -1,4 +1,4 @@
-use crate::TypeName;
+use crate::{PrimitiveValue, TypeName};
 
 // A *data structure* that can be described by schematic.
 pub trait Describe: Sized {
@@ -13,6 +13,8 @@ pub trait Describer: Sized {
     type Error;
 
     type DescribeStruct: DescribeStruct<Ok = Self::Ok, Error = Self::Error>;
+    type DescribeEnum: DescribeEnum<Ok = Self::Ok, Error = Self::Error>;
+    type DescribeTuple: DescribeTuple<Ok = Self::Ok, Error = Self::Error>;
 
     fn describe_bool(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i8(self) -> Result<Self::Ok, Self::Error>;
@@ -37,9 +39,7 @@ pub trait Describer: Sized {
 
     fn describe_unit_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
 
-    fn describe_enum<T>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
-    where
-        T: Describe;
+    fn describe_enum(self, name: TypeName) -> Result<Self::DescribeEnum, Self::Error>;
 
     fn describe_newtype_struct<T>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
     where
@@ -66,5 +66,43 @@ pub trait DescribeStruct {
     type Error;
 
     fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error>;
+    fn end(self) -> Result<Self::Ok, Self::Error>;
+}
+
+pub trait DescribeEnum {
+    type Ok;
+    type Error;
+
+    type DescribeStruct: DescribeStruct<Ok = Self::Ok, Error = Self::Error>;
+    type DescribeTuple: DescribeTuple<Ok = Self::Ok, Error = Self::Error>;
+
+    fn describe_unit_variant(
+        &mut self,
+        name: &'static str,
+        discriminant: Option<PrimitiveValue>,
+    ) -> Result<(), Self::Error>;
+
+    fn start_tuple_variant(
+        &mut self,
+        name: &'static str,
+    ) -> Result<Self::DescribeTuple, Self::Error>;
+
+    fn end_tuple_variant(&mut self, variant: Self::DescribeTuple) -> Result<(), Self::Error>;
+
+    fn start_struct_variant(
+        &mut self,
+        name: &'static str,
+    ) -> Result<Self::DescribeStruct, Self::Error>;
+
+    fn end_struct_variant(&mut self, variant: Self::DescribeStruct) -> Result<(), Self::Error>;
+
+    fn end(self) -> Result<Self::Ok, Self::Error>;
+}
+
+pub trait DescribeTuple {
+    type Ok;
+    type Error;
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error>;
     fn end(self) -> Result<Self::Ok, Self::Error>;
 }
