@@ -61,6 +61,14 @@ pub trait Describer: Sized {
     fn describe_struct(self, name: TypeName) -> Result<Self::DescribeStruct, Self::Error>;
 }
 
+pub trait DescribeTuple {
+    type Ok;
+    type Error;
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error>;
+    fn end(self) -> Result<Self::Ok, Self::Error>;
+}
+
 pub trait DescribeStruct {
     type Ok;
     type Error;
@@ -73,8 +81,8 @@ pub trait DescribeEnum {
     type Ok;
     type Error;
 
-    type DescribeStruct: DescribeStruct<Ok = Self::Ok, Error = Self::Error>;
-    type DescribeTuple: DescribeTuple<Ok = Self::Ok, Error = Self::Error>;
+    type DescribeStructVariant: DescribeStructVariant<Error = Self::Error>;
+    type DescribeTupleVariant: DescribeTupleVariant<Error = Self::Error>;
 
     fn describe_unit_variant(
         &mut self,
@@ -85,24 +93,32 @@ pub trait DescribeEnum {
     fn start_tuple_variant(
         &mut self,
         name: &'static str,
-    ) -> Result<Self::DescribeTuple, Self::Error>;
+    ) -> Result<Self::DescribeTupleVariant, Self::Error>;
 
-    fn end_tuple_variant(&mut self, variant: Self::DescribeTuple) -> Result<(), Self::Error>;
+    fn end_tuple_variant(&mut self, variant: Self::DescribeTupleVariant)
+        -> Result<(), Self::Error>;
 
     fn start_struct_variant(
         &mut self,
         name: &'static str,
-    ) -> Result<Self::DescribeStruct, Self::Error>;
+    ) -> Result<Self::DescribeStructVariant, Self::Error>;
 
-    fn end_struct_variant(&mut self, variant: Self::DescribeStruct) -> Result<(), Self::Error>;
+    fn end_struct_variant(
+        &mut self,
+        variant: Self::DescribeStructVariant,
+    ) -> Result<(), Self::Error>;
 
     fn end(self) -> Result<Self::Ok, Self::Error>;
 }
 
-pub trait DescribeTuple {
-    type Ok;
+pub trait DescribeTupleVariant {
     type Error;
 
     fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error>;
-    fn end(self) -> Result<Self::Ok, Self::Error>;
+}
+
+pub trait DescribeStructVariant {
+    type Error;
+
+    fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error>;
 }

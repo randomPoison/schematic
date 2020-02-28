@@ -1,8 +1,4 @@
-use crate::{
-    describe::{Describe, Describer},
-    schema::*,
-    DescribeEnum, DescribeStruct, DescribeTuple, TypeName,
-};
+use crate::{describe::*, schema::*, TypeName};
 use std::borrow::Cow;
 
 pub struct SchemaDescriber;
@@ -140,6 +136,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct StructDescriber {
     type_name: TypeName,
     fields: Vec<(Cow<'static, str>, Schema)>,
@@ -163,6 +160,7 @@ impl DescribeStruct for StructDescriber {
     }
 }
 
+#[derive(Debug, Clone, Default)]
 pub struct TupleDescriber {
     elements: Vec<Schema>,
 }
@@ -190,8 +188,8 @@ impl DescribeEnum for EnumDescriber {
     type Ok = Schema;
     type Error = ();
 
-    type DescribeStruct = StructDescriber;
-    type DescribeTuple = TupleDescriber;
+    type DescribeStructVariant = StructVariantDescriber;
+    type DescribeTupleVariant = TupleVariantDescriber;
 
     fn describe_unit_variant(
         &mut self,
@@ -208,24 +206,46 @@ impl DescribeEnum for EnumDescriber {
 
     fn start_tuple_variant(
         &mut self,
-        _name: &'static str,
-    ) -> Result<Self::DescribeTuple, Self::Error> {
-        unimplemented!()
+        name: &'static str,
+    ) -> Result<Self::DescribeTupleVariant, Self::Error> {
+        Ok(TupleVariantDescriber {
+            name,
+            elements: Default::default(),
+        })
     }
 
-    fn end_tuple_variant(&mut self, _variant: Self::DescribeTuple) -> Result<(), Self::Error> {
-        unimplemented!()
+    fn end_tuple_variant(
+        &mut self,
+        variant: Self::DescribeTupleVariant,
+    ) -> Result<(), Self::Error> {
+        self.variants.push(Variant::Tuple {
+            name: variant.name.into(),
+            elements: variant.elements,
+        });
+
+        Ok(())
     }
 
     fn start_struct_variant(
         &mut self,
-        _name: &'static str,
-    ) -> Result<Self::DescribeStruct, Self::Error> {
-        unimplemented!()
+        name: &'static str,
+    ) -> Result<Self::DescribeStructVariant, Self::Error> {
+        Ok(StructVariantDescriber {
+            name,
+            fields: Default::default(),
+        })
     }
 
-    fn end_struct_variant(&mut self, _variant: Self::DescribeStruct) -> Result<(), Self::Error> {
-        unimplemented!()
+    fn end_struct_variant(
+        &mut self,
+        variant: Self::DescribeStructVariant,
+    ) -> Result<(), Self::Error> {
+        self.variants.push(Variant::Struct {
+            name: variant.name.into(),
+            fields: variant.fields,
+        });
+
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
@@ -234,5 +254,36 @@ impl DescribeEnum for EnumDescriber {
             repr: None,
             variants: self.variants,
         }))
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct TupleVariantDescriber {
+    name: &'static str,
+    elements: Vec<Schema>,
+}
+
+impl DescribeTupleVariant for TupleVariantDescriber {
+    type Error = ();
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
+        self.elements.push(crate::describe::<T>()?);
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct StructVariantDescriber {
+    name: &'static str,
+    fields: Vec<(Cow<'static, str>, Schema)>,
+}
+
+impl DescribeStructVariant for StructVariantDescriber {
+    type Error = ();
+
+    fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error> {
+        let ty = crate::describe::<T>()?;
+        self.fields.push((name.into(), ty));
+        Ok(())
     }
 }

@@ -88,8 +88,15 @@ pub enum Variant {
         discriminant: Option<PrimitiveValue>,
     },
 
-    Struct(Struct),
-    Tuple(Vec<Schema>),
+    Struct {
+        name: Cow<'static, str>,
+        fields: Vec<(Cow<'static, str>, Schema)>,
+    },
+
+    Tuple {
+        name: Cow<'static, str>,
+        elements: Vec<Schema>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
