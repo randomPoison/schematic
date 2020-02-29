@@ -1,6 +1,6 @@
 //! Implementations of `Describe` for primitives and types provided by the standard libary.
 
-use crate::describe::{Describe, Describer};
+use crate::describe::*;
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
 /// Generates the `Describe` impl for primitives and collection types.
@@ -59,8 +59,33 @@ impl Describe for () {
     }
 }
 
-// impl<'a> Describe for &'a str {
-//     fn describe<E: Describer>(describer: D) -> Result<E::Ok, E::Error> {
-//         describer.describe_str()
-//     }
-// }
+macro_rules! describe_tuple {
+    ( $($ty:ident),* ) => {
+        impl<$( $ty, )*> Describe for ($( $ty, )*) where $( $ty: Describe, )* {
+            fn describe<Desc: Describer>(describer: Desc) -> Result<Desc::Ok, Desc::Error> {
+                let mut describer = describer.describe_tuple()?;
+                $(
+                    describer.describe_element::<$ty>()?;
+                )*
+                describer.end()
+            }
+        }
+    }
+}
+
+describe_tuple!(A);
+describe_tuple!(A, B);
+describe_tuple!(A, B, C);
+describe_tuple!(A, B, C, D);
+describe_tuple!(A, B, C, D, E);
+describe_tuple!(A, B, C, D, E, F);
+describe_tuple!(A, B, C, D, E, F, G);
+describe_tuple!(A, B, C, D, E, F, G, H);
+describe_tuple!(A, B, C, D, E, F, G, H, I);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);

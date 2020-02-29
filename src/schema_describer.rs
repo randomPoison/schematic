@@ -105,8 +105,8 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         })
     }
 
-    fn describe_tuple(self) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn describe_tuple(self) -> Result<Self::DescribeTuple, Self::Error> {
+        Ok(Default::default())
     }
 
     fn describe_tuple_struct(self, _name: TypeName) -> Result<Self::Ok, Self::Error> {

@@ -49,7 +49,7 @@ pub trait Describer: Sized {
     where
         T: Describe;
 
-    fn describe_tuple(self) -> Result<Self::Ok, Self::Error>;
+    fn describe_tuple(self) -> Result<Self::DescribeTuple, Self::Error>;
 
     fn describe_tuple_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
 
