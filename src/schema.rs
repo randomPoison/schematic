@@ -92,7 +92,7 @@ impl Enum {
     /// variants if those variants don't contain any fields:
     ///
     /// ```ignore
-    /// #[derive(Schematic)]
+    /// #[derive(Describe)]
     /// pub enum MyEnum {
     ///     Foo,
     ///     Bar {},
@@ -128,6 +128,28 @@ pub enum Variant {
 }
 
 impl Variant {
+    /// Returns the name of the variant.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use schematic::Variant;
+    ///
+    /// let variant = Variant::Unit {
+    ///     name: "Foo".into(),
+    ///     discriminant: None,
+    /// };
+    ///
+    /// assert_eq!("Foo", variant.name());
+    /// ```
+    pub fn name(&self) -> &str {
+        match self {
+            Variant::Unit { name, .. } => name,
+            Variant::Struct { name, .. } => name,
+            Variant::Tuple { name, .. } => name,
+        }
+    }
+
     /// Returns `true` for unit-like variants and struct/tuple-like variants with no fields.
     ///
     /// # Examples
