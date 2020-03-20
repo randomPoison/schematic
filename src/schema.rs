@@ -1,7 +1,7 @@
 use crate::TypeName;
 use derive_more::From;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt};
+use std::{borrow::Cow, fmt, iter};
 
 /// In-memory representation of a type tree.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -177,6 +177,46 @@ impl Variant {
             Variant::Tuple { elements, .. } => elements.is_empty(),
         }
     }
+
+    /// Returns an iterator over the fields in the variant.
+    ///
+    /// Useful if you're iterating over the variants of an enum and want to work with
+    /// the fields of each variant without needing to deal with the specific type of
+    /// each variant. For each of the variant types, the returned iterator does the
+    /// following:
+    ///
+    /// * For a unit variant, an empty iterator is returned.
+    /// * For a struct-like variant, the yielded elements will have names.
+    /// * For a tuple-like variant, the yielded elements will not have names.
+    pub fn fields(&self) -> Box<dyn Iterator<Item = VariantField<'_>> + '_> {
+        match self {
+            Variant::Unit { .. } => Box::new(iter::empty()),
+
+            Variant::Struct { fields, .. } => {
+                Box::new(fields.iter().map(|(name, schema)| VariantField {
+                    name: Some(name),
+                    schema,
+                }))
+            }
+
+            Variant::Tuple { elements, .. } => Box::new(
+                elements
+                    .iter()
+                    .map(|schema| VariantField { name: None, schema }),
+            ),
+        }
+    }
+}
+
+/// A field in an enum variant.
+///
+/// See [`Variant::fields`] for more.
+///
+/// [`Variant::fields`]: ./struct.Variant.html#method.fields
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VariantField<'a> {
+    pub name: Option<&'a str>,
+    pub schema: &'a Schema,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
