@@ -37,6 +37,40 @@ pub enum Schema {
 }
 
 impl Schema {
+    /// Returns the [`TypeName`] for user-defined types.
+    ///
+    /// For user-defined types (i.e. structs and enums) this function returns the type
+    /// name identifying the type. For all other types it returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use schematic::{Schema, Struct, TypeName};
+    ///
+    /// let schema = Schema::Struct(Struct {
+    ///     name: TypeName {
+    ///         name: "MyStruct".into(),
+    ///         module: "my_crate::my_module".into(),
+    ///     },
+    ///     fields: vec![],
+    /// });
+    ///
+    /// let type_name = schema.type_name().unwrap();
+    /// assert_eq!("MyStruct", type_name.name);
+    /// assert_eq!("my_crate::my_module", type_name.module);
+    /// ```
+    pub fn type_name(&self) -> Option<&TypeName> {
+        Some(match self {
+            Schema::Struct(schema) => &schema.name,
+            Schema::UnitStruct(schema) => &schema.name,
+            Schema::NewtypeStruct(schema) => &schema.name,
+            Schema::TupleStruct(schema) => &schema.name,
+            Schema::Enum(schema) => &schema.name,
+
+            _ => return None,
+        })
+    }
+
     pub fn as_struct(&self) -> Option<&Struct> {
         match self {
             Schema::Struct(inner) => Some(inner),
