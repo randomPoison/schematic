@@ -81,6 +81,34 @@ pub struct Enum {
     pub variants: Vec<Variant>,
 }
 
+impl Enum {
+    /// Returns `true` if any variant in the enum contains field data.
+    ///
+    /// When working with enums, it's often useful to handle C-like enums differently
+    /// than enums that carry additional data. This method makes it easy to quickly
+    /// determine which kind of enum you're dealing with.
+    ///
+    /// Note that this will return `true` for enums with struct-like or tuple-like
+    /// variants if those variants don't contain any fields:
+    ///
+    /// ```ignore
+    /// #[derive(Schematic)]
+    /// pub enum MyEnum {
+    ///     Foo,
+    ///     Bar {},
+    ///     Baz (),
+    /// }
+    ///
+    /// let schema = schematic::describe::<MyEnum>()
+    ///     .and_then(Schema::as_enum)
+    ///     .unwrap();
+    /// assert!(!schema.has_data());
+    /// ```
+    pub fn has_data(&self) -> bool {
+        !self.variants.iter().all(Variant::is_empty)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Variant {
     Unit {
@@ -97,6 +125,36 @@ pub enum Variant {
         name: Cow<'static, str>,
         elements: Vec<Schema>,
     },
+}
+
+impl Variant {
+    /// Returns `true` for unit-like variants and struct/tuple-like variants with no fields.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// #[derive(Schematic)]
+    /// pub enum MyEnum {
+    ///     Foo,
+    ///     Bar {},
+    ///     Baz (),
+    /// }
+    ///
+    /// let schema = schematic::describe::<MyEnum>()
+    ///     .and_then(Schema::as_enum)
+    ///     .unwrap();
+    ///
+    /// for variant in &schema.variants {
+    ///     assert!(variant.is_empty());
+    /// }
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Variant::Unit { .. } => true,
+            Variant::Struct { fields, .. } => fields.is_empty(),
+            Variant::Tuple { elements, .. } => elements.is_empty(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
