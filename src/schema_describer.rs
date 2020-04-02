@@ -8,6 +8,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     type Error = ();
 
     type DescribeStruct = StructDescriber;
+    type DescribeTupleStruct = TupleStructDescriber;
     type DescribeEnum = EnumDescriber;
     type DescribeTuple = TupleDescriber;
 
@@ -109,8 +110,14 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Default::default())
     }
 
-    fn describe_tuple_struct(self, _name: TypeName) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn describe_tuple_struct(
+        self,
+        _name: TypeName,
+    ) -> Result<Self::DescribeTupleStruct, Self::Error> {
+        Ok(TupleStructDescriber {
+            type_name: _name,
+            elements: Vec::new(),
+        })
     }
 
     fn describe_seq<T>(self) -> Result<Self::Ok, Self::Error>
@@ -156,6 +163,29 @@ impl DescribeStruct for StructDescriber {
         Ok(Schema::Struct(Struct {
             name: self.type_name,
             fields: self.fields,
+        }))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TupleStructDescriber {
+    type_name: TypeName,
+    elements: Vec<Schema>,
+}
+
+impl DescribeTupleStruct for TupleStructDescriber {
+    type Ok = Schema;
+    type Error = ();
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
+        self.elements.push(crate::describe::<T>()?);
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::TupleStruct(TupleStruct {
+            name: self.type_name,
+            elements: self.elements,
         }))
     }
 }

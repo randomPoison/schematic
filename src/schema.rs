@@ -104,6 +104,12 @@ pub struct Struct {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct TupleStruct {
+    pub name: TypeName,
+    pub elements: Vec<Schema>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Enum {
     pub name: TypeName,
 
@@ -302,11 +308,6 @@ impl fmt::Display for PrimitiveValue {
             PrimitiveValue::Isize(value) => write!(f, "{}", value),
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct TupleStruct {
-    pub name: TypeName,
 }
 
 /// Expands to a [`TypeName`] for the specified type.

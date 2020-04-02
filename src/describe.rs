@@ -13,6 +13,7 @@ pub trait Describer: Sized {
     type Error;
 
     type DescribeStruct: DescribeStruct<Ok = Self::Ok, Error = Self::Error>;
+    type DescribeTupleStruct: DescribeTupleStruct<Ok = Self::Ok, Error = Self::Error>;
     type DescribeEnum: DescribeEnum<Ok = Self::Ok, Error = Self::Error>;
     type DescribeTuple: DescribeTuple<Ok = Self::Ok, Error = Self::Error>;
 
@@ -51,7 +52,10 @@ pub trait Describer: Sized {
 
     fn describe_tuple(self) -> Result<Self::DescribeTuple, Self::Error>;
 
-    fn describe_tuple_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
+    fn describe_tuple_struct(
+        self,
+        name: TypeName,
+    ) -> Result<Self::DescribeTupleStruct, Self::Error>;
 
     fn describe_map<K, V>(self) -> Result<Self::Ok, Self::Error>
     where
@@ -74,6 +78,14 @@ pub trait DescribeStruct {
     type Error;
 
     fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error>;
+    fn end(self) -> Result<Self::Ok, Self::Error>;
+}
+
+pub trait DescribeTupleStruct {
+    type Ok;
+    type Error;
+
+    fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error>;
     fn end(self) -> Result<Self::Ok, Self::Error>;
 }
 
