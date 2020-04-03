@@ -97,16 +97,36 @@ pub struct NewtypeStruct {
     pub inner: Schema,
 }
 
+impl NewtypeStruct {
+    pub fn fields(&self) -> impl Iterator<Item = Field<'_>> {
+        iter::once(Field::unnamed(&self.inner))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Struct {
     pub name: TypeName,
     pub fields: Vec<(Cow<'static, str>, Schema)>,
 }
 
+impl Struct {
+    pub fn fields(&self) -> impl Iterator<Item = Field<'_>> {
+        self.fields
+            .iter()
+            .map(|(name, schema)| Field::named(name, schema))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TupleStruct {
     pub name: TypeName,
     pub elements: Vec<Schema>,
+}
+
+impl TupleStruct {
+    pub fn fields(&self) -> impl Iterator<Item = Field<'_>> {
+        self.elements.iter().map(Field::unnamed)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -228,35 +248,59 @@ impl Variant {
     /// * For a unit variant, an empty iterator is returned.
     /// * For a struct-like variant, the yielded elements will have names.
     /// * For a tuple-like variant, the yielded elements will not have names.
-    pub fn fields(&self) -> Box<dyn Iterator<Item = VariantField<'_>> + '_> {
+    pub fn fields(&self) -> Box<dyn Iterator<Item = Field<'_>> + '_> {
         match self {
             Variant::Unit { .. } => Box::new(iter::empty()),
 
-            Variant::Struct { fields, .. } => {
-                Box::new(fields.iter().map(|(name, schema)| VariantField {
-                    name: Some(name),
-                    schema,
-                }))
-            }
+            Variant::Struct { fields, .. } => Box::new(fields.iter().map(|(name, schema)| Field {
+                name: Some(name),
+                schema,
+            })),
 
-            Variant::Tuple { elements, .. } => Box::new(
-                elements
-                    .iter()
-                    .map(|schema| VariantField { name: None, schema }),
-            ),
+            Variant::Tuple { elements, .. } => {
+                Box::new(elements.iter().map(|schema| Field { name: None, schema }))
+            }
         }
     }
 }
 
-/// A field in an enum variant.
+/// Generic representation of a field in a struct, enum variant, or tuple.
+///
+/// It's often desirable to be able to operate over the fields of different kinds of
+/// types in a uniform manner. Any schema value that contains fields (or can
+/// possibly contain fields) provides a way to get an iterator of `Field` objects in
+/// to simplify these cases.
+///
+/// Note that the [`name`] field is an [`Option`] because fields in tuple-like
+/// objects don't have names, and so you can't assume that a field will have a name
+/// when working with generic fields.
 ///
 /// See [`Variant::fields`] for more.
 ///
 /// [`Variant::fields`]: ./struct.Variant.html#method.fields
+/// [`name`]: #structfield.name
+/// [`Option`]: https://doc.rust-lang.org/std/option/enum.Option.html
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct VariantField<'a> {
+pub struct Field<'a> {
     pub name: Option<&'a str>,
     pub schema: &'a Schema,
+}
+
+impl<'a> Field<'a> {
+    pub fn new(name: Option<&'a str>, schema: &'a Schema) -> Self {
+        Self { name, schema }
+    }
+
+    pub fn named(name: &'a str, schema: &'a Schema) -> Self {
+        Self {
+            name: Some(name),
+            schema,
+        }
+    }
+
+    pub fn unnamed(schema: &'a Schema) -> Self {
+        Self { name: None, schema }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

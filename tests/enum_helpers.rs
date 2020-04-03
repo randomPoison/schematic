@@ -1,4 +1,4 @@
-use schematic::{type_name, Enum, Schema, Variant, VariantField};
+use schematic::{type_name, Enum, Schema, Variant, Field};
 
 #[test]
 fn test_empty_enum() {
@@ -73,14 +73,14 @@ fn named_variant_fields() {
 
     let mut fields = variant.fields();
     assert_eq!(
-        Some(VariantField {
+        Some(Field {
             name: Some("foo"),
             schema: &Schema::I8
         }),
         fields.next()
     );
     assert_eq!(
-        Some(VariantField {
+        Some(Field {
             name: Some("bar"),
             schema: &Schema::String,
         }),
@@ -98,14 +98,14 @@ fn unnamed_variant_fields() {
 
     let mut fields = variant.fields();
     assert_eq!(
-        Some(VariantField {
+        Some(Field {
             name: None,
             schema: &Schema::I8
         }),
         fields.next()
     );
     assert_eq!(
-        Some(VariantField {
+        Some(Field {
             name: None,
             schema: &Schema::String,
         }),
