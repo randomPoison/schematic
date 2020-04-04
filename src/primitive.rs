@@ -59,6 +59,10 @@ impl Describe for () {
     }
 }
 
+/// Generates the `Describe` impl for tuples of various arity.
+///
+/// The generated impl will call `describe_tuple`, and then call `describe_element`
+/// for each type param.
 macro_rules! describe_tuple {
     ( $($ty:ident),* ) => {
         impl<$( $ty, )*> Describe for ($( $ty, )*) where $( $ty: Describe, )* {
@@ -89,3 +93,38 @@ describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
 describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
 describe_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+
+impl<'a, T> Describe for &'a [T]
+where
+    T: Describe,
+{
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_seq::<T>()
+    }
+}
+
+/// Generates the `Describe` impl for arrays of different length.
+///
+/// For array types like `[T; 12]`, each length of array is considered a different
+/// type. Right now there's no way to generically implement a trait for all lengths
+/// of an array, so this macro provides a way to manually implement `Describe` for
+/// different lengths of array.
+macro_rules! describe_array {
+    ( $( $len:expr ),* ) => {
+        $(
+            impl<T> Describe for [T; $len] where T: Describe {
+                fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
+                    describer.describe_seq::<T>()
+                }
+            }
+        )*
+    }
+}
+
+describe_array!(
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    26, 27, 28, 29, 30, 31, 32
+);

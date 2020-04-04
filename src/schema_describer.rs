@@ -124,7 +124,8 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     where
         T: Describe,
     {
-        unimplemented!()
+        let inner = T::describe(self)?;
+        Ok(Schema::Seq(Box::new(inner)))
     }
 
     fn describe_map<K, V>(self) -> Result<Self::Ok, Self::Error>
