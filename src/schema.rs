@@ -73,7 +73,39 @@ impl Schema {
 
     pub fn as_struct(&self) -> Option<&Struct> {
         match self {
-            Schema::Struct(inner) => Some(inner),
+            Schema::Struct(schema) => Some(schema),
+            _ => None,
+        }
+    }
+
+    pub fn as_tuple_struct(&self) -> Option<&TupleStruct> {
+        match self {
+            Schema::TupleStruct(schema) => Some(schema),
+            _ => None,
+        }
+    }
+
+    pub fn as_newtype_struct(&self) -> Option<&NewtypeStruct> {
+        match self {
+            Schema::NewtypeStruct(schema) => Some(schema),
+            _ => None,
+        }
+    }
+
+    pub fn as_unit_struct(&self) -> Option<&UnitStruct> {
+        match self {
+            Schema::UnitStruct(schema) => Some(schema),
+            _ => None,
+        }
+    }
+
+    pub fn as_struct_like(&self) -> Option<StructLike<'_>> {
+        match self {
+            Schema::Struct(schema) => Some(schema.into()),
+            Schema::TupleStruct(schema) => Some(schema.into()),
+            Schema::NewtypeStruct(schema) => Some((&**schema).into()),
+            Schema::UnitStruct(schema) => Some(schema.into()),
+
             _ => None,
         }
     }
@@ -126,6 +158,64 @@ pub struct TupleStruct {
 impl TupleStruct {
     pub fn fields(&self) -> impl Iterator<Item = Field<'_>> {
         self.elements.iter().map(Field::unnamed)
+    }
+}
+
+/// Generic representation for all struct-like schema types.
+///
+/// The data model has several different struct-like types:
+///
+/// * `struct`
+/// * `tuple_struct`
+/// * `newtype_struct`
+/// * `unit_struct`
+///
+/// While it is often useful to handle these differently (and they're treated as
+/// different in the [Serde data model][sdm]), there are also times where you want
+/// to operate over all struct-like types in a uniform way. `StructLike` provides a
+/// way to do this, providing a generic representation for all of the above types
+/// in the data model.
+///
+/// [sdm]: https://serde.rs/data-model.html
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct StructLike<'a> {
+    pub name: &'a TypeName,
+    pub fields: Vec<Field<'a>>,
+}
+
+impl<'a> From<&'a Struct> for StructLike<'a> {
+    fn from(from: &'a Struct) -> Self {
+        Self {
+            name: &from.name,
+            fields: from.fields().collect(),
+        }
+    }
+}
+
+impl<'a> From<&'a TupleStruct> for StructLike<'a> {
+    fn from(from: &'a TupleStruct) -> Self {
+        Self {
+            name: &from.name,
+            fields: from.fields().collect(),
+        }
+    }
+}
+
+impl<'a> From<&'a NewtypeStruct> for StructLike<'a> {
+    fn from(from: &'a NewtypeStruct) -> Self {
+        Self {
+            name: &from.name,
+            fields: from.fields().collect(),
+        }
+    }
+}
+
+impl<'a> From<&'a UnitStruct> for StructLike<'a> {
+    fn from(from: &'a UnitStruct) -> Self {
+        Self {
+            name: &from.name,
+            fields: Vec::new(),
+        }
     }
 }
 
@@ -280,7 +370,7 @@ impl Variant {
 /// [`Variant::fields`]: ./struct.Variant.html#method.fields
 /// [`name`]: #structfield.name
 /// [`Option`]: https://doc.rust-lang.org/std/option/enum.Option.html
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Field<'a> {
     pub name: Option<&'a str>,
     pub schema: &'a Schema,
