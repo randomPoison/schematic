@@ -1,28 +1,29 @@
 use pretty_assertions::assert_eq;
-use schematic::Schema;
+use schematic::{Array, Schema, Sequence, TypeName};
 
 #[test]
 fn describe_vec() {
-    let expected = Schema::Seq(Box::new(Schema::U32));
+    let expected = Schema::Seq(Box::new(Sequence {
+        name: TypeName::new("Vec", "alloc::vec"),
+        element: Schema::U32,
+        len: None,
+    }));
     let actual = schematic::describe::<Vec<u32>>().unwrap();
     assert_eq!(expected, actual);
 }
 
 #[test]
 fn describe_array() {
-    let expected = Schema::Seq(Box::new(Schema::U32));
-    assert_eq!(expected, schematic::describe::<[u32; 0]>().unwrap());
-    assert_eq!(expected, schematic::describe::<[u32; 1]>().unwrap());
-    assert_eq!(expected, schematic::describe::<[u32; 2]>().unwrap());
-    assert_eq!(expected, schematic::describe::<[u32; 4]>().unwrap());
+    let expected = Schema::Array(Box::new(Array {
+        element: Schema::U32,
+        len: 8,
+    }));
     assert_eq!(expected, schematic::describe::<[u32; 8]>().unwrap());
-    assert_eq!(expected, schematic::describe::<[u32; 16]>().unwrap());
-    assert_eq!(expected, schematic::describe::<[u32; 32]>().unwrap());
 }
 
 #[test]
 fn describe_slice() {
-    let expected = Schema::Seq(Box::new(Schema::U32));
+    let expected = Schema::Slice(Box::new(Schema::U32));
     let actual = schematic::describe::<&[u32]>().unwrap();
     assert_eq!(expected, actual);
 }

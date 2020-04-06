@@ -37,7 +37,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     }
 
     fn describe_isize(self) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+        Ok(Schema::ISize)
     }
 
     fn describe_u8(self) -> Result<Self::Ok, Self::Error> {
@@ -61,7 +61,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     }
 
     fn describe_usize(self) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+        Ok(Schema::USize)
     }
 
     fn describe_f32(self) -> Result<Self::Ok, Self::Error> {
@@ -77,11 +77,11 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     }
 
     fn describe_str(self) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+        Ok(Schema::Str)
     }
 
     fn describe_string(self, name: TypeName) -> Result<Self::Ok, Self::Error> {
-        Ok(Schema::String)
+        Ok(Schema::String(name))
     }
 
     fn describe_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -136,22 +136,25 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     where
         T: Describe,
     {
-        unimplemented!()
+        Ok(Schema::Array(Box::new(Array {
+            element: T::describe(self)?,
+            len,
+        })))
     }
 
     fn describe_slice<T>(self) -> Result<Self::Ok, Self::Error>
     where
         T: Describe,
     {
-        unimplemented!()
+        Ok(Schema::Slice(Box::new(T::describe(self)?)))
     }
 
     fn describe_seq<T>(self, name: TypeName, len: Option<usize>) -> Result<Self::Ok, Self::Error>
     where
         T: Describe,
     {
-        let inner = T::describe(self)?;
-        Ok(Schema::Seq(Box::new(inner)))
+        let element = T::describe(self)?;
+        Ok(Schema::Seq(Box::new(Sequence { name, element, len })))
     }
 
     fn describe_map<K, V>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
@@ -159,7 +162,11 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         K: Describe,
         V: Describe,
     {
-        unimplemented!()
+        Ok(Schema::Map(Box::new(Map {
+            name,
+            key: K::describe(&mut *self)?,
+            value: V::describe(&mut *self)?,
+        })))
     }
 
     fn describe_struct(self, type_name: TypeName) -> Result<Self::DescribeStruct, Self::Error> {

@@ -1,3 +1,4 @@
+use pretty_assertions::assert_eq;
 use schematic::*;
 
 #[allow(dead_code)]
@@ -40,7 +41,7 @@ fn describe_simple_enum() {
 #[allow(dead_code)]
 enum WithData {
     Foo,
-    Bar(String, u32),
+    Bar(usize, u32),
     Baz { first: bool, second: i8 },
 }
 
@@ -52,7 +53,7 @@ impl Describe for WithData {
 
         {
             let mut variant_describer = describer.start_tuple_variant("Bar")?;
-            variant_describer.describe_element::<String>()?;
+            variant_describer.describe_element::<usize>()?;
             variant_describer.describe_element::<u32>()?;
             describer.end_tuple_variant(variant_describer)?;
         }
@@ -82,7 +83,7 @@ fn describe_data_enum() {
             },
             Variant::Tuple {
                 name: "Bar".into(),
-                elements: vec![Schema::String, Schema::U32],
+                elements: vec![Schema::USize, Schema::U32],
             },
             Variant::Struct {
                 name: "Baz".into(),

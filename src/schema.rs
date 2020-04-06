@@ -6,34 +6,46 @@ use std::{borrow::Cow, fmt, iter};
 /// In-memory representation of a type tree.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Schema {
-    Struct(Struct),
-    UnitStruct(UnitStruct),
-    NewtypeStruct(Box<NewtypeStruct>),
-    TupleStruct(TupleStruct),
-    Enum(Enum),
-    Option(Box<Schema>),
-    Seq(Box<Schema>),
-    Tuple(Vec<Schema>),
-    Map {
-        key: Box<Schema>,
-        value: Box<Schema>,
-    },
+    Unit,
+    Bool,
+    Char,
+
     I8,
     I16,
     I32,
     I64,
     I128,
+    ISize,
+
     U8,
     U16,
     U32,
     U64,
     U128,
+    USize,
+
     F32,
     F64,
-    Bool,
-    Char,
-    String,
-    Unit,
+
+    Str,
+    String(TypeName),
+
+    Option(Box<Schema>),
+
+    Tuple(Vec<Schema>),
+
+    Array(Box<Array>),
+    Slice(Box<Schema>),
+    Seq(Box<Sequence>),
+
+    Map(Box<Map>),
+
+    UnitStruct(UnitStruct),
+    Struct(Struct),
+    TupleStruct(TupleStruct),
+    NewtypeStruct(Box<NewtypeStruct>),
+
+    Enum(Enum),
 }
 
 impl Schema {
@@ -116,6 +128,26 @@ impl Schema {
             _ => None,
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Array {
+    pub element: Schema,
+    pub len: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Sequence {
+    pub name: TypeName,
+    pub element: Schema,
+    pub len: Option<usize>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Map {
+    pub name: TypeName,
+    pub key: Schema,
+    pub value: Schema,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
