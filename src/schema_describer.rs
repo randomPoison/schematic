@@ -36,6 +36,10 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::I128)
     }
 
+    fn describe_isize(self) -> Result<Self::Ok, Self::Error> {
+        unimplemented!()
+    }
+
     fn describe_u8(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::U8)
     }
@@ -56,6 +60,10 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::I128)
     }
 
+    fn describe_usize(self) -> Result<Self::Ok, Self::Error> {
+        unimplemented!()
+    }
+
     fn describe_f32(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::F32)
     }
@@ -68,7 +76,11 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::Char)
     }
 
-    fn describe_string(self) -> Result<Self::Ok, Self::Error> {
+    fn describe_str(self) -> Result<Self::Ok, Self::Error> {
+        unimplemented!()
+    }
+
+    fn describe_string(self, name: TypeName) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::String)
     }
 
@@ -120,7 +132,21 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         })
     }
 
-    fn describe_seq<T>(self) -> Result<Self::Ok, Self::Error>
+    fn describe_array<T>(self, len: usize) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe,
+    {
+        unimplemented!()
+    }
+
+    fn describe_slice<T>(self) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe,
+    {
+        unimplemented!()
+    }
+
+    fn describe_seq<T>(self, name: TypeName, len: Option<usize>) -> Result<Self::Ok, Self::Error>
     where
         T: Describe,
     {
@@ -128,7 +154,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::Seq(Box::new(inner)))
     }
 
-    fn describe_map<K, V>(self) -> Result<Self::Ok, Self::Error>
+    fn describe_map<K, V>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
     where
         K: Describe,
         V: Describe,

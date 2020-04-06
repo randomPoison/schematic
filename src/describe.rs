@@ -18,51 +18,74 @@ pub trait Describer: Sized {
     type DescribeTuple: DescribeTuple<Ok = Self::Ok, Error = Self::Error>;
 
     fn describe_bool(self) -> Result<Self::Ok, Self::Error>;
+
     fn describe_i8(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i16(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i32(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i64(self) -> Result<Self::Ok, Self::Error>;
     fn describe_i128(self) -> Result<Self::Ok, Self::Error>;
+    fn describe_isize(self) -> Result<Self::Ok, Self::Error>;
+
     fn describe_u8(self) -> Result<Self::Ok, Self::Error>;
     fn describe_u16(self) -> Result<Self::Ok, Self::Error>;
     fn describe_u32(self) -> Result<Self::Ok, Self::Error>;
     fn describe_u64(self) -> Result<Self::Ok, Self::Error>;
     fn describe_u128(self) -> Result<Self::Ok, Self::Error>;
+    fn describe_usize(self) -> Result<Self::Ok, Self::Error>;
+
     fn describe_f32(self) -> Result<Self::Ok, Self::Error>;
     fn describe_f64(self) -> Result<Self::Ok, Self::Error>;
+
     fn describe_char(self) -> Result<Self::Ok, Self::Error>;
-    fn describe_string(self) -> Result<Self::Ok, Self::Error>;
+
+    fn describe_str(self) -> Result<Self::Ok, Self::Error>;
+    fn describe_string(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
+
     fn describe_unit(self) -> Result<Self::Ok, Self::Error>;
+
+    fn describe_tuple(self) -> Result<Self::DescribeTuple, Self::Error>;
 
     fn describe_option<T>(self) -> Result<Self::Ok, Self::Error>
     where
         T: Describe;
 
-    fn describe_unit_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
+    /// Describes a fixed-size array of length `len` and elements of type `T`.
+    fn describe_array<T>(self, len: usize) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe;
+
+    /// Describes a slice with elements of type `T`.
+    fn describe_slice<T>(self) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe;
+
+    /// Describes a custom type that logically represents a sequence of elements.
+    ///
+    /// `len` is an optional length for the type. `len` should only be specified if
+    /// the length of the sequence can be known statically.
+    fn describe_seq<T>(self, name: TypeName, len: Option<usize>) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe;
+
+    fn describe_map<K, V>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
+    where
+        K: Describe,
+        V: Describe;
 
     fn describe_enum(self, name: TypeName) -> Result<Self::DescribeEnum, Self::Error>;
 
-    fn describe_newtype_struct<T>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
-    where
-        T: Describe;
+    fn describe_unit_struct(self, name: TypeName) -> Result<Self::Ok, Self::Error>;
 
-    fn describe_seq<T>(self) -> Result<Self::Ok, Self::Error>
-    where
-        T: Describe;
-
-    fn describe_tuple(self) -> Result<Self::DescribeTuple, Self::Error>;
+    fn describe_struct(self, name: TypeName) -> Result<Self::DescribeStruct, Self::Error>;
 
     fn describe_tuple_struct(
         self,
         name: TypeName,
     ) -> Result<Self::DescribeTupleStruct, Self::Error>;
 
-    fn describe_map<K, V>(self) -> Result<Self::Ok, Self::Error>
+    fn describe_newtype_struct<T>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
     where
-        K: Describe,
-        V: Describe;
-
-    fn describe_struct(self, name: TypeName) -> Result<Self::DescribeStruct, Self::Error>;
+        T: Describe;
 }
 
 pub trait DescribeTuple {
