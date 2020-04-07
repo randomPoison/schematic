@@ -1,6 +1,7 @@
-//! Implementations of `Describe` for primitives and types provided by the standard libary.
+//! Implementations of `Describe` for primitives and types provided by the standard
+//! library.
 
-use crate::describe::*;
+use crate::{describe::*, TypeName};
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 
 /// Generates the `Describe` impl for primitives and collection types.
@@ -34,23 +35,64 @@ impl_describe! {
     i32 => describe_i32,
     i64 => describe_i64,
     i128 => describe_i128,
+    isize => describe_isize,
     u8 => describe_u8,
     u16 => describe_u16,
     u32 => describe_u32,
     u64 => describe_u64,
     u128 => describe_u128,
+    usize => describe_usize,
     bool => describe_bool,
     char => describe_char,
-    String => describe_string,
     Option<T> => describe_option,
-    Vec<T> => describe_seq,
-    VecDeque<T> => describe_seq,
-    HashMap<K, V> => describe_map,
-    BTreeMap<K, V> => describe_map,
-    HashSet<T> => describe_seq,
-    BTreeSet<T> => describe_seq,
-    BinaryHeap<T> => describe_seq,
-    LinkedList<T> => describe_seq,
+}
+
+macro_rules! describe_seq {
+    ( $( $ty:ident => $module:literal, )* ) => {
+        $(
+            impl<T> Describe for $ty<T> where T: Describe {
+                fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
+                    describer.describe_seq::<T>(TypeName::new(stringify!($ty), $module), None)
+                }
+            }
+        )*
+    };
+}
+
+describe_seq! {
+    Vec => "alloc::vec",
+    VecDeque => "alloc::collections::vec_deque",
+    HashSet => "std::collections::hash_set::HashSet",
+    BTreeSet => "alloc::collections::btree_set",
+    BinaryHeap => "alloc::collections::binary_heap",
+    LinkedList => "alloc::collections::LinkedList",
+}
+
+impl<K: Describe, V: Describe> Describe for HashMap<K, V> {
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_map::<K, V>(TypeName::new("HashMap", "std::collections::hash_map"))
+    }
+}
+
+impl<K: Describe, V: Describe> Describe for BTreeMap<K, V> {
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_map::<K, V>(TypeName::new("BTreeMap", "alloc::collections::btree_map"))
+    }
+}
+
+impl Describe for String {
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_string(TypeName::new("String", "alloc::string"))
+    }
 }
 
 impl Describe for () {
@@ -59,7 +101,7 @@ impl Describe for () {
     }
 }
 
-/// Generates the `Describe` impl for tuples of various arity.
+/// Generates the `Describe` impl for tuples of different arity.
 ///
 /// The generated impl will call `describe_tuple`, and then call `describe_element`
 /// for each type param.
@@ -102,7 +144,7 @@ where
     where
         D: Describer,
     {
-        describer.describe_seq::<T>()
+        describer.describe_slice::<T>()
     }
 }
 
@@ -117,7 +159,7 @@ macro_rules! describe_array {
         $(
             impl<T> Describe for [T; $len] where T: Describe {
                 fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-                    describer.describe_seq::<T>()
+                    describer.describe_array::<T>($len)
                 }
             }
         )*

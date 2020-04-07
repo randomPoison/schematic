@@ -2,14 +2,14 @@ use pretty_assertions::assert_eq;
 use schematic::*;
 
 pub struct ManualStruct {
-    pub field: String,
+    pub field: bool,
     pub another: u32,
 }
 
 impl Describe for ManualStruct {
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
         let mut describer = describer.describe_struct(schematic::type_name!(ManualStruct))?;
-        describer.describe_field::<String>("field")?;
+        describer.describe_field::<bool>("field")?;
         describer.describe_field::<u32>("another")?;
         describer.end()
     }
@@ -22,7 +22,7 @@ fn describe_struct() {
     let expected = Schema::Struct(Struct {
         name: schematic::type_name!(ManualStruct),
         fields: vec![
-            ("field".into(), Schema::String),
+            ("field".into(), Schema::Bool),
             ("another".into(), Schema::U32),
         ],
     });
@@ -30,13 +30,13 @@ fn describe_struct() {
     assert_eq!(expected, actual);
 }
 
-pub struct ManualTupleStruct(String, u32);
+pub struct ManualTupleStruct(bool, u32);
 
 impl Describe for ManualTupleStruct {
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
         let mut describer =
             describer.describe_tuple_struct(schematic::type_name!(ManualTupleStruct))?;
-        describer.describe_element::<String>()?;
+        describer.describe_element::<bool>()?;
         describer.describe_element::<u32>()?;
         describer.end()
     }
@@ -56,7 +56,7 @@ fn describe_tuple_struct() {
 
     let expected = Schema::TupleStruct(TupleStruct {
         name: schematic::type_name!(ManualTupleStruct),
-        elements: vec![Schema::String, Schema::U32],
+        elements: vec![Schema::Bool, Schema::U32],
     });
 
     assert_eq!(expected, actual);
@@ -88,7 +88,7 @@ fn test_nested_struct() {
                 Schema::Struct(Struct {
                     name: schematic::type_name!(ManualStruct),
                     fields: vec![
-                        ("field".into(), Schema::String),
+                        ("field".into(), Schema::Bool),
                         ("another".into(), Schema::U32),
                     ],
                 }),
@@ -97,7 +97,7 @@ fn test_nested_struct() {
                 "tuple_struct".into(),
                 Schema::TupleStruct(TupleStruct {
                     name: schematic::type_name!(ManualTupleStruct),
-                    elements: vec![Schema::String, Schema::U32],
+                    elements: vec![Schema::Bool, Schema::U32],
                 }),
             ),
         ],

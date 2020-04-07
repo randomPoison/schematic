@@ -36,6 +36,10 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::I128)
     }
 
+    fn describe_isize(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::ISize)
+    }
+
     fn describe_u8(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::U8)
     }
@@ -56,6 +60,10 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::I128)
     }
 
+    fn describe_usize(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::USize)
+    }
+
     fn describe_f32(self) -> Result<Self::Ok, Self::Error> {
         Ok(Schema::F32)
     }
@@ -68,8 +76,12 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         Ok(Schema::Char)
     }
 
-    fn describe_string(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Schema::String)
+    fn describe_str(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::Str)
+    }
+
+    fn describe_string(self, name: TypeName) -> Result<Self::Ok, Self::Error> {
+        Ok(Schema::String(name))
     }
 
     fn describe_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -120,20 +132,41 @@ impl<'a> Describer for &'a mut SchemaDescriber {
         })
     }
 
-    fn describe_seq<T>(self) -> Result<Self::Ok, Self::Error>
+    fn describe_array<T>(self, len: usize) -> Result<Self::Ok, Self::Error>
     where
         T: Describe,
     {
-        let inner = T::describe(self)?;
-        Ok(Schema::Seq(Box::new(inner)))
+        Ok(Schema::Array(Box::new(Array {
+            element: T::describe(self)?,
+            len,
+        })))
     }
 
-    fn describe_map<K, V>(self) -> Result<Self::Ok, Self::Error>
+    fn describe_slice<T>(self) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe,
+    {
+        Ok(Schema::Slice(Box::new(T::describe(self)?)))
+    }
+
+    fn describe_seq<T>(self, name: TypeName, len: Option<usize>) -> Result<Self::Ok, Self::Error>
+    where
+        T: Describe,
+    {
+        let element = T::describe(self)?;
+        Ok(Schema::Seq(Box::new(Sequence { name, element, len })))
+    }
+
+    fn describe_map<K, V>(self, name: TypeName) -> Result<Self::Ok, Self::Error>
     where
         K: Describe,
         V: Describe,
     {
-        unimplemented!()
+        Ok(Schema::Map(Box::new(Map {
+            name,
+            key: K::describe(&mut *self)?,
+            value: V::describe(&mut *self)?,
+        })))
     }
 
     fn describe_struct(self, type_name: TypeName) -> Result<Self::DescribeStruct, Self::Error> {
