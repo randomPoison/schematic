@@ -57,7 +57,7 @@ impl<'a> Describer for &'a mut SchemaDescriber {
     }
 
     fn describe_u128(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Schema::I128)
+        Ok(Schema::U128)
     }
 
     fn describe_usize(self) -> Result<Self::Ok, Self::Error> {

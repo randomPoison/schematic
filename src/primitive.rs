@@ -36,12 +36,17 @@ impl_describe! {
     i64 => describe_i64,
     i128 => describe_i128,
     isize => describe_isize,
+
     u8 => describe_u8,
     u16 => describe_u16,
     u32 => describe_u32,
     u64 => describe_u64,
     u128 => describe_u128,
     usize => describe_usize,
+
+    f32 => describe_f32,
+    f64 => describe_f64,
+
     bool => describe_bool,
     char => describe_char,
     Option<T> => describe_option,
