@@ -7,8 +7,12 @@ pub struct ManualStruct {
 }
 
 impl Describe for ManualStruct {
+    fn type_name() -> TypeName {
+        schematic::type_name!(ManualStruct)
+    }
+
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-        let mut describer = describer.describe_struct(schematic::type_name!(ManualStruct))?;
+        let mut describer = describer.describe_struct(Self::type_name())?;
         describer.describe_field::<bool>("field")?;
         describer.describe_field::<u32>("another")?;
         describer.end()
@@ -33,9 +37,12 @@ fn describe_struct() {
 pub struct ManualTupleStruct(bool, u32);
 
 impl Describe for ManualTupleStruct {
+    fn type_name() -> TypeName {
+        schematic::type_name!(ManualTupleStruct)
+    }
+
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-        let mut describer =
-            describer.describe_tuple_struct(schematic::type_name!(ManualTupleStruct))?;
+        let mut describer = describer.describe_tuple_struct(Self::type_name())?;
         describer.describe_element::<bool>()?;
         describer.describe_element::<u32>()?;
         describer.end()
@@ -68,8 +75,12 @@ pub struct NestedStruct {
 }
 
 impl Describe for NestedStruct {
+    fn type_name() -> TypeName {
+        schematic::type_name!(NestedStruct)
+    }
+
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-        let mut describer = describer.describe_struct(schematic::type_name!(NestedStruct))?;
+        let mut describer = describer.describe_struct(Self::type_name())?;
         describer.describe_field::<ManualStruct>("manual_struct")?;
         describer.describe_field::<ManualTupleStruct>("tuple_struct")?;
         describer.end()

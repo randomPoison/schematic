@@ -82,6 +82,13 @@ pub struct TypeName {
     /// Note that this may not be the same module that the type is publicly exported
     /// from in the owning crate.
     pub module: Cow<'static, str>,
+
+    /// Any generic parameters, if the type is generic.
+    ///
+    /// For non-generic types, this list will be empty. For generic types, this list
+    /// should reflect the names of each of the generic parameters in order of
+    /// declaration.
+    pub type_params: Vec<TypeName>,
 }
 
 impl TypeName {
@@ -93,6 +100,20 @@ impl TypeName {
         Self {
             name: name.into(),
             module: module.into(),
+            type_params: Vec::new(),
+        }
+    }
+
+    pub fn generic<N, M, P>(name: N, module: M, type_params: P) -> Self
+    where
+        N: Into<Cow<'static, str>>,
+        M: Into<Cow<'static, str>>,
+        P: Into<Vec<TypeName>>,
+    {
+        Self {
+            name: name.into(),
+            module: module.into(),
+            type_params: type_params.into(),
         }
     }
 }

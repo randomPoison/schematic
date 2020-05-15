@@ -1,10 +1,10 @@
 use pretty_assertions::assert_eq;
-use schematic::{Array, Schema, Sequence, TypeName};
+use schematic::{Array, Describe, Schema, Sequence, TypeName};
 
 #[test]
 fn describe_vec() {
     let expected = Schema::Seq(Box::new(Sequence {
-        name: TypeName::new("Vec", "alloc::vec"),
+        name: TypeName::generic("Vec", "alloc::vec", vec![<u32 as Describe>::type_name()]),
         element: Schema::U32,
         len: None,
     }));
