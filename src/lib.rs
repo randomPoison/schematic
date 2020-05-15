@@ -58,9 +58,12 @@ mod schema_describer;
 pub use crate::{describe::*, schema::*, schema_describer::*};
 
 /// Describes `T` into an in-memory representation of the type tree.
-pub fn describe<T: Describe>() -> Result<Schema, ()> {
+pub fn describe<T: Describe>() -> Schema {
     let mut describe = SchemaDescriber;
-    T::describe(&mut describe)
+
+    // NOTE: The unwrap here will never panic because the error type of
+    // `SchemaDescriber` is `!`.
+    T::describe(&mut describe).unwrap()
 }
 
 /// Unique name for a type.

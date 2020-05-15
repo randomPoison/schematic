@@ -18,7 +18,7 @@ impl Describe for Simple {
 
 #[test]
 fn describe_simple_enum() {
-    let actual = schematic::describe::<Simple>().expect("Failed to describe `Simple`");
+    let actual = schematic::describe::<Simple>();
 
     let expected = Schema::Enum(Enum {
         name: type_name!(Simple),
@@ -71,7 +71,7 @@ impl Describe for WithData {
 
 #[test]
 fn describe_data_enum() {
-    let actual = schematic::describe::<WithData>().expect("Failed to describe `WithData`");
+    let actual = schematic::describe::<WithData>();
 
     let expected = Schema::Enum(Enum {
         name: type_name!(WithData),

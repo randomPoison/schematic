@@ -17,7 +17,7 @@ impl Describe for ManualStruct {
 
 #[test]
 fn describe_struct() {
-    let actual = schematic::describe::<ManualStruct>().unwrap();
+    let actual = schematic::describe::<ManualStruct>();
 
     let expected = Schema::Struct(Struct {
         name: schematic::type_name!(ManualStruct),
@@ -52,7 +52,7 @@ impl Describe for ManualTupleStruct {
 
 #[test]
 fn describe_tuple_struct() {
-    let actual = schematic::describe::<ManualTupleStruct>().unwrap();
+    let actual = schematic::describe::<ManualTupleStruct>();
 
     let expected = Schema::TupleStruct(TupleStruct {
         name: schematic::type_name!(ManualTupleStruct),
@@ -78,7 +78,7 @@ impl Describe for NestedStruct {
 
 #[test]
 fn test_nested_struct() {
-    let actual = schematic::describe::<NestedStruct>().unwrap();
+    let actual = schematic::describe::<NestedStruct>();
 
     let expected = Schema::Struct(Struct {
         name: schematic::type_name!(NestedStruct),

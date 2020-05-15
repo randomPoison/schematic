@@ -4,7 +4,7 @@ use schematic::Schema;
 macro_rules! describe_primitives {
     ( $( $prim:ty => $schema:ident, )* ) => {
         $(
-            assert_eq!(Ok(Schema::$schema), schematic::describe::<$prim>());
+            assert_eq!(Schema::$schema, schematic::describe::<$prim>());
         )*
     };
 }

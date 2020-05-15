@@ -8,7 +8,7 @@ fn describe_vec() {
         element: Schema::U32,
         len: None,
     }));
-    let actual = schematic::describe::<Vec<u32>>().unwrap();
+    let actual = schematic::describe::<Vec<u32>>();
     assert_eq!(expected, actual);
 }
 
@@ -18,12 +18,12 @@ fn describe_array() {
         element: Schema::U32,
         len: 8,
     }));
-    assert_eq!(expected, schematic::describe::<[u32; 8]>().unwrap());
+    assert_eq!(expected, schematic::describe::<[u32; 8]>());
 }
 
 #[test]
 fn describe_slice() {
     let expected = Schema::Slice(Box::new(Schema::U32));
-    let actual = schematic::describe::<&[u32]>().unwrap();
+    let actual = schematic::describe::<&[u32]>();
     assert_eq!(expected, actual);
 }

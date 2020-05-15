@@ -1,11 +1,12 @@
 use crate::{describe::*, schema::*, TypeName};
+use never_type::Never;
 use std::borrow::Cow;
 
 pub struct SchemaDescriber;
 
 impl<'a> Describer for &'a mut SchemaDescriber {
     type Ok = Schema;
-    type Error = ();
+    type Error = Never;
 
     type DescribeStruct = StructDescriber;
     type DescribeTupleStruct = TupleStructDescriber;
@@ -185,10 +186,10 @@ pub struct StructDescriber {
 
 impl DescribeStruct for StructDescriber {
     type Ok = Schema;
-    type Error = ();
+    type Error = Never;
 
     fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error> {
-        let ty = crate::describe::<T>()?;
+        let ty = crate::describe::<T>();
         self.fields.push((name.into(), ty));
         Ok(())
     }
@@ -209,10 +210,10 @@ pub struct TupleStructDescriber {
 
 impl DescribeTupleStruct for TupleStructDescriber {
     type Ok = Schema;
-    type Error = ();
+    type Error = Never;
 
     fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
-        self.elements.push(crate::describe::<T>()?);
+        self.elements.push(crate::describe::<T>());
         Ok(())
     }
 
@@ -231,10 +232,10 @@ pub struct TupleDescriber {
 
 impl DescribeTuple for TupleDescriber {
     type Ok = Schema;
-    type Error = ();
+    type Error = Never;
 
     fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
-        self.elements.push(crate::describe::<T>()?);
+        self.elements.push(crate::describe::<T>());
         Ok(())
     }
 
@@ -250,7 +251,7 @@ pub struct EnumDescriber {
 
 impl DescribeEnum for EnumDescriber {
     type Ok = Schema;
-    type Error = ();
+    type Error = Never;
 
     type DescribeStructVariant = StructVariantDescriber;
     type DescribeTupleVariant = TupleVariantDescriber;
@@ -328,10 +329,10 @@ pub struct TupleVariantDescriber {
 }
 
 impl DescribeTupleVariant for TupleVariantDescriber {
-    type Error = ();
+    type Error = Never;
 
     fn describe_element<T: Describe>(&mut self) -> Result<(), Self::Error> {
-        self.elements.push(crate::describe::<T>()?);
+        self.elements.push(crate::describe::<T>());
         Ok(())
     }
 }
@@ -343,10 +344,10 @@ pub struct StructVariantDescriber {
 }
 
 impl DescribeStructVariant for StructVariantDescriber {
-    type Error = ();
+    type Error = Never;
 
     fn describe_field<T: Describe>(&mut self, name: &'static str) -> Result<(), Self::Error> {
-        let ty = crate::describe::<T>()?;
+        let ty = crate::describe::<T>();
         self.fields.push((name.into(), ty));
         Ok(())
     }
