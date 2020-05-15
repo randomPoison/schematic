@@ -8,8 +8,12 @@ enum Simple {
 }
 
 impl Describe for Simple {
+    fn type_name() -> TypeName {
+        schematic::type_name!(Simple)
+    }
+
     fn describe<D: Describer>(describer: D) -> std::result::Result<D::Ok, D::Error> {
-        let mut describer = describer.describe_enum(schematic::type_name!(Simple))?;
+        let mut describer = describer.describe_enum(Self::type_name())?;
         describer.describe_unit_variant("Foo", None)?;
         describer.describe_unit_variant("Bar", None)?;
         describer.end()
@@ -46,8 +50,12 @@ enum WithData {
 }
 
 impl Describe for WithData {
+    fn type_name() -> TypeName {
+        schematic::type_name!(WithData)
+    }
+
     fn describe<D: Describer>(describer: D) -> std::result::Result<D::Ok, D::Error> {
-        let mut describer = describer.describe_enum(schematic::type_name!(WithData))?;
+        let mut describer = describer.describe_enum(Self::type_name())?;
 
         describer.describe_unit_variant("Foo", None)?;
 

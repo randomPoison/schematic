@@ -60,10 +60,7 @@ impl Schema {
     /// use schematic::{Schema, Struct, TypeName};
     ///
     /// let schema = Schema::Struct(Struct {
-    ///     name: TypeName {
-    ///         name: "MyStruct".into(),
-    ///         module: "my_crate::my_module".into(),
-    ///     },
+    ///     name: TypeName::new("MyStruct", "my_crate::my_module"),
     ///     fields: vec![],
     /// });
     ///
@@ -491,10 +488,6 @@ impl fmt::Display for PrimitiveValue {
 #[macro_export]
 macro_rules! type_name {
     ($ty:ty) => {
-        $crate::TypeName {
-            // TODO: Support stripping off
-            name: std::borrow::Cow::Borrowed(stringify!($ty)),
-            module: std::borrow::Cow::Borrowed(module_path!()),
-        }
+        $crate::TypeName::new(stringify!($ty), module_path!())
     };
 }

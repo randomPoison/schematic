@@ -18,11 +18,15 @@ use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedL
 /// }
 /// ```
 macro_rules! impl_describe {
-    ( $( $ty:ident $( < $( $generic:ident ),* > )? => $describe:ident, )* ) => {
+    ( $( $ty:ident => $describe:ident, )* ) => {
         $(
-            impl $( < $( $generic ),* > )? Describe for $ty $( < $( $generic ),* > where $( $generic: Describe ),* )? {
+            impl Describe for $ty {
+                fn type_name() -> TypeName {
+                    $crate::TypeName::new(stringify!($ty), "")
+                }
+
                 fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-                    describer.$describe $( ::<$( $generic, )* >)?()
+                    describer.$describe()
                 }
             }
         )*
@@ -49,15 +53,35 @@ impl_describe! {
 
     bool => describe_bool,
     char => describe_char,
-    Option<T> => describe_option,
+}
+
+impl<T: Describe> Describe for Option<T> {
+    fn type_name() -> TypeName {
+        TypeName::generic("Option", "core::option", vec![T::type_name()])
+    }
+
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_option::<T>()
+    }
 }
 
 macro_rules! describe_seq {
     ( $( $ty:ident => $module:literal, )* ) => {
         $(
             impl<T> Describe for $ty<T> where T: Describe {
+                fn type_name() -> TypeName {
+                    $crate::TypeName::generic(
+                        stringify!($ty),
+                        $module,
+                        vec![T::type_name()],
+                    )
+                }
+
                 fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
-                    describer.describe_seq::<T>(TypeName::new(stringify!($ty), $module), None)
+                    describer.describe_seq::<T>(Self::type_name(), None)
                 }
             }
         )*
@@ -74,24 +98,44 @@ describe_seq! {
 }
 
 impl<K: Describe, V: Describe> Describe for HashMap<K, V> {
+    fn type_name() -> TypeName {
+        TypeName::generic(
+            "HashMap",
+            "std::collections::hash_map",
+            vec![K::type_name(), V::type_name()],
+        )
+    }
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer,
     {
-        describer.describe_map::<K, V>(TypeName::new("HashMap", "std::collections::hash_map"))
+        describer.describe_map::<K, V>(Self::type_name())
     }
 }
 
 impl<K: Describe, V: Describe> Describe for BTreeMap<K, V> {
+    fn type_name() -> TypeName {
+        TypeName::generic(
+            "BTreeMap",
+            "alloc::collections::btree_map",
+            vec![K::type_name(), V::type_name()],
+        )
+    }
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer,
     {
-        describer.describe_map::<K, V>(TypeName::new("BTreeMap", "alloc::collections::btree_map"))
+        describer.describe_map::<K, V>(Self::type_name())
     }
 }
 
 impl<'a> Describe for &'a str {
+    fn type_name() -> TypeName {
+        TypeName::new("str", "")
+    }
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer,
@@ -101,15 +145,23 @@ impl<'a> Describe for &'a str {
 }
 
 impl Describe for String {
+    fn type_name() -> TypeName {
+        TypeName::new("String", "alloc::string")
+    }
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer,
     {
-        describer.describe_string(TypeName::new("String", "alloc::string"))
+        describer.describe_string(Self::type_name())
     }
 }
 
 impl Describe for () {
+    fn type_name() -> TypeName {
+        TypeName::new("()", "")
+    }
+
     fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
         describer.describe_unit()
     }
@@ -122,6 +174,14 @@ impl Describe for () {
 macro_rules! describe_tuple {
     ( $($ty:ident),* ) => {
         impl<$( $ty, )*> Describe for ($( $ty, )*) where $( $ty: Describe, )* {
+            fn type_name() -> $crate::TypeName {
+                TypeName::generic(
+                    "()",
+                    "",
+                    vec![$( $ty::type_name(), )*],
+                )
+            }
+
             fn describe<Desc: Describer>(describer: Desc) -> Result<Desc::Ok, Desc::Error> {
                 let mut describer = describer.describe_tuple()?;
                 $(
@@ -154,6 +214,10 @@ impl<'a, T> Describe for &'a [T]
 where
     T: Describe,
 {
+    fn type_name() -> TypeName {
+        TypeName::generic("[]", "", vec![T::type_name()])
+    }
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer,
@@ -172,6 +236,10 @@ macro_rules! describe_array {
     ( $( $len:expr ),* ) => {
         $(
             impl<T> Describe for [T; $len] where T: Describe {
+                fn type_name() -> TypeName {
+                    TypeName::generic(stringify!([;$len]), "", vec![T::type_name()])
+                }
+
                 fn describe<D: Describer>(describer: D) -> Result<D::Ok, D::Error> {
                     describer.describe_array::<T>($len)
                 }

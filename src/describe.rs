@@ -2,6 +2,9 @@ use crate::{PrimitiveValue, TypeName};
 
 // A *data structure* that can be described by schematic.
 pub trait Describe: Sized {
+    // The unique name identifying the type.
+    fn type_name() -> TypeName;
+
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
         D: Describer;
