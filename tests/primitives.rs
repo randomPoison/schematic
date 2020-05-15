@@ -32,5 +32,7 @@ fn describe_primitives() {
         bool => Bool,
         char => Char,
         () => Unit,
+
+        &str => Str,
     }
 }

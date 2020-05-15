@@ -91,6 +91,15 @@ impl<K: Describe, V: Describe> Describe for BTreeMap<K, V> {
     }
 }
 
+impl<'a> Describe for &'a str {
+    fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
+    where
+        D: Describer,
+    {
+        describer.describe_str()
+    }
+}
+
 impl Describe for String {
     fn describe<D>(describer: D) -> Result<D::Ok, D::Error>
     where
